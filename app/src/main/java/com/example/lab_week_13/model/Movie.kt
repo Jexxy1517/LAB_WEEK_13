@@ -5,8 +5,10 @@ import com.squareup.moshi.Json
 data class Movie(
     val id: Int,
     val title: String,
-    @Json(name = "release_date") val releaseDate: String?,
-    @Json(name = "poster_path") val posterPath: String?,
     val overview: String,
-    val popularity: Double
+    @Json(name = "poster_path") val poster_path: String,
+    @Json(name = "backdrop_path") val backdrop_path: String? = "",
+    @Json(name = "vote_average") val vote_average: Double,
+    @Json(name = "release_date") val release_date: String,
+    @Json(name = "popularity") val popularity: Double
 )

@@ -3,68 +3,54 @@ package com.example.lab_week_13
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.lab_week_13.databinding.ActivityMainBinding
 import com.example.lab_week_13.model.DetailsActivity
+import com.example.lab_week_13.model.Movie
 import com.example.lab_week_13.model.MovieViewModel
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.movie_list)
+        // 1. Setup Data Binding
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        val movieAdapter = MovieAdapter { movie ->
-            val intent = Intent(this, DetailsActivity::class.java)
-            intent.putExtra(DetailsActivity.EXTRA_TITLE, movie.title)
-            intent.putExtra(DetailsActivity.EXTRA_RELEASE, movie.releaseDate ?: "")
-            intent.putExtra(DetailsActivity.EXTRA_OVERVIEW, movie.overview)
-            intent.putExtra(DetailsActivity.EXTRA_POSTER, movie.posterPath)
-            startActivity(intent)
-        }
+        // 2. Setup RecyclerView & Adapter
+        val adapter = MovieAdapter()
+        binding.rvMovies.layoutManager = GridLayoutManager(this, 2)
+        binding.rvMovies.adapter = adapter
 
-        recyclerView.layoutManager = GridLayoutManager(this, 2)
-        recyclerView.adapter = movieAdapter
-
+        // 3. Ambil Repository dari Application Class (Sesuai Week 12)
         val movieRepository = (application as MovieApplication).movieRepository
+
+        // 4. Inisialisasi ViewModel dengan Factory (Sesuai Week 12)
         val movieViewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return MovieViewModel(movieRepository) as T
             }
         })[MovieViewModel::class.java]
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+        // 5. Hubungkan ViewModel ke XML Binding
+        binding.viewModel = movieViewModel
+        binding.lifecycleOwner = this
 
-                launch {
-                    movieViewModel.popularMovies.collect { movies ->
-                        if (movies.isNotEmpty()) {
-                            movieAdapter.addMovies(movies)
-                        }
-                    }
-                }
-
-                launch {
-                    movieViewModel.error.collect { error ->
-                        if (error.isNotEmpty()) {
-                            Snackbar.make(
-                                recyclerView,
-                                error,
-                                Snackbar.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                }
+        // 6. Setup Click Listener
+        adapter.setOnItemClickCallback(object : MovieAdapter.OnItemClickCallback {
+            override fun onItemClicked(data: Movie) {
+                val intent = Intent(this@MainActivity, DetailsActivity::class.java)
+                intent.putExtra(DetailsActivity.EXTRA_TITLE, data.title)
+                intent.putExtra(DetailsActivity.EXTRA_RELEASE, data.release_date)
+                intent.putExtra(DetailsActivity.EXTRA_OVERVIEW, data.overview)
+                intent.putExtra(DetailsActivity.EXTRA_POSTER, data.poster_path)
+                startActivity(intent)
             }
-        }
+        })
     }
 }

@@ -8,10 +8,15 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.lab_week_13.model.Movie
-import com.example.lab_week_13.R
 
-class MovieAdapter(private val onMovieClick: (Movie) -> Unit) : RecyclerView.Adapter<MovieAdapter.MovieViewHolder>() {
-    private val movies = mutableListOf<Movie>()
+class MovieAdapter : RecyclerView.Adapter<MovieAdapter.MovieViewHolder>() {
+
+    private val movies = ArrayList<Movie>()
+    private var onItemClickCallback: OnItemClickCallback? = null
+
+    fun setOnItemClickCallback(onItemClickCallback: OnItemClickCallback) {
+        this.onItemClickCallback = onItemClickCallback
+    }
 
     fun addMovies(movies: List<Movie>) {
         this.movies.clear()
@@ -25,27 +30,30 @@ class MovieAdapter(private val onMovieClick: (Movie) -> Unit) : RecyclerView.Ada
     }
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
-        val movie = movies[position]
-        holder.bind(movie)
-        holder.itemView.setOnClickListener { onMovieClick(movie) }
+        holder.bind(movies[position])
     }
 
     override fun getItemCount(): Int = movies.size
 
-    class MovieViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val titleText: TextView = itemView.findViewById(R.id.movie_title)
-        private val posterImage: ImageView = itemView.findViewById(R.id.movie_poster)
-
+    inner class MovieViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(movie: Movie) {
+            val titleText = itemView.findViewById<TextView>(R.id.text_title)
+            val posterImage = itemView.findViewById<ImageView>(R.id.image_poster)
+
             titleText.text = movie.title
 
-            // Kode untuk tanggal rilis saya hapus karena menyebabkan error di project Anda
+            // Mengambil gambar dari URL TMDB
+            Glide.with(itemView.context)
+                .load("https://image.tmdb.org/t/p/w500${movie.poster_path}")
+                .into(posterImage)
 
-            if (movie.posterPath != null) {
-                Glide.with(itemView)
-                    .load("https://image.tmdb.org/t/p/w500${movie.posterPath}")
-                    .into(posterImage)
+            itemView.setOnClickListener {
+                onItemClickCallback?.onItemClicked(movie)
             }
         }
+    }
+
+    interface OnItemClickCallback {
+        fun onItemClicked(data: Movie)
     }
 }
