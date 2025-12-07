@@ -1,43 +1,50 @@
 package com.example.lab_week_13.model
 
 import android.os.Bundle
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import com.bumptech.glide.Glide
 import com.example.lab_week_13.R
+import com.example.lab_week_13.databinding.ActivityDetailsBinding
 
 class DetailsActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityDetailsBinding
+
     companion object {
-        const val EXTRA_TITLE = "title"
-        const val EXTRA_RELEASE = "release"
-        const val EXTRA_OVERVIEW = "overview"
-        const val EXTRA_POSTER = "poster"
+        const val EXTRA_TITLE = "extra_title"
+        const val EXTRA_RELEASE = "extra_release"
+        const val EXTRA_OVERVIEW = "extra_overview"
+        const val EXTRA_POSTER = "extra_poster"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_details)
 
-        val titleText: TextView = findViewById(R.id.title_text)
-        val releaseText: TextView = findViewById(R.id.release_text)
-        val overviewText: TextView = findViewById(R.id.overview_text)
-        val poster: ImageView = findViewById(R.id.movie_poster)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_details)
 
-        val extras = intent.extras
+        val title = intent.getStringExtra(EXTRA_TITLE)
+        val releaseDate = intent.getStringExtra(EXTRA_RELEASE)
+        val overview = intent.getStringExtra(EXTRA_OVERVIEW)
+        val posterPath = intent.getStringExtra(EXTRA_POSTER)
 
-        if (extras != null) {
-            titleText.text = extras.getString(EXTRA_TITLE, "")
-            releaseText.text = extras.getString(EXTRA_RELEASE, "")
-            overviewText.text = extras.getString(EXTRA_OVERVIEW, "")
+        binding.textTitleDetail.text = title
+        binding.textReleaseDate.text = "Released: $releaseDate"
+        binding.textOverviewDetail.text = overview
 
-            val posterPath = extras.getString(EXTRA_POSTER)
-            if (posterPath != null) {
-                Glide.with(this)
-                    .load("https://image.tmdb.org/t/p/w500$posterPath")
-                    .into(poster)
-            }
+        if (posterPath != null) {
+            Glide.with(this)
+                .load("https://image.tmdb.org/t/p/w500$posterPath")
+                .placeholder(R.drawable.ic_launcher_background)
+                .into(binding.imagePosterDetail)
         }
+
+        supportActionBar?.title = "Movie Details"
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressedDispatcher.onBackPressed()
+        return true
     }
 }
