@@ -1,6 +1,8 @@
 package com.example.lab_week_13.model
 
+import com.squareup.moshi.Json
+
 data class PopularMoviesResponse(
-    val page: Int,
-    val results: List<Movie>
+    @Json(name = "page") val page: Int,
+    @Json(name = "results") val results: List<Movie>
 )

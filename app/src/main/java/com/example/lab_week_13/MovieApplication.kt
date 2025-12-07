@@ -2,21 +2,32 @@ package com.example.lab_week_13
 
 import android.app.Application
 import com.example.lab_week_13.api.MovieService
-import com.example.lab_week_13.model.MovieRepository
+import com.example.lab_week_13.database.MovieDatabase
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 class MovieApplication : Application() {
+
     lateinit var movieRepository: MovieRepository
 
     override fun onCreate() {
         super.onCreate()
+
+        val movieDatabase = MovieDatabase.getInstance(applicationContext)
+
+        val moshi = Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.themoviedb.org/3/")
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
         val movieService = retrofit.create(MovieService::class.java)
-        movieRepository = MovieRepository(movieService)
+
+        movieRepository = MovieRepository(movieService, movieDatabase)
     }
 }
